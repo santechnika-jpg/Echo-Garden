@@ -319,10 +319,9 @@
   }
 
   function addLightTrail(plant) {
-    const gardenRect = garden.getBoundingClientRect();
     const plantRect = plant.getBoundingClientRect();
-    const x = plantRect.left + plantRect.width / 2 - gardenRect.left;
-    const y = plantRect.top + plantRect.height / 2 - gardenRect.top;
+    const x = plantRect.left + plantRect.width / 2;
+    const y = plantRect.top + plantRect.height / 2;
     state.particles.push({
       x,
       y,
