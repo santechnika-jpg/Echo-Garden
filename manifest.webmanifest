@@ -1,0 +1,25 @@
+{
+  "name": "Echo Garden",
+  "short_name": "Echo Garden",
+  "description": "Ramus mobilus atminties žaidimas apie šviesos ir garso sekas naktiniame sode.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#061c1f",
+  "theme_color": "#061c1f",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='42' fill='%23061c1f'/%3E%3Ccircle cx='96' cy='96' r='56' fill='%237ee6a8' opacity='.22'/%3E%3Cpath d='M96 38c19 27 31 45 31 67a31 31 0 0 1-62 0c0-22 12-40 31-67Z' fill='%237ee6a8'/%3E%3Ccircle cx='96' cy='105' r='12' fill='%23f2cf73'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%23061c1f'/%3E%3Ccircle cx='256' cy='256' r='154' fill='%237ee6a8' opacity='.18'/%3E%3Cpath d='M256 86c55 78 88 129 88 190a88 88 0 0 1-176 0c0-61 33-112 88-190Z' fill='%237ee6a8'/%3E%3Ccircle cx='256' cy='289' r='34' fill='%23f2cf73'/%3E%3Cpath d='M168 346c50 45 126 48 176 0' stroke='%2383c9ff' stroke-width='22' stroke-linecap='round' fill='none' opacity='.75'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
