@@ -58,7 +58,7 @@ http://localhost:4173
 - Web Audio API kiekvieno augalo tonams.
 - `localStorage` geriausiam raundui.
 - `requestAnimationFrame` subtiliems aplinkos efektams.
-- `service-worker.js` su cache versija `echo-garden-v1`.
+- `service-worker.js` su cache versija `echo-garden-v2`.
 - Offline veikimas po pirmo užkrovimo.
 
 ## Kokybės patikros
