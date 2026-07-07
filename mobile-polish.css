@@ -50,24 +50,33 @@ body {
 
 .ripple,
 .trail {
-  left: 50%;
-  top: 50%;
-  width: 38px;
-  height: 38px;
-  inset: auto;
-  transform: translate(-50%, -50%);
+  display: none !important;
+  animation: none !important;
 }
 
 .plant.active .plant-shape {
-  transform: scale(1.08);
+  animation: plantFlash 520ms ease-out;
+  filter:
+    brightness(1.72)
+    saturate(1.48)
+    drop-shadow(0 0 18px color-mix(in srgb, var(--accent), white 18%))
+    drop-shadow(0 0 36px color-mix(in srgb, var(--accent), transparent 18%));
+  transform: scale(1.18);
 }
 
-.plant.active .ripple {
-  animation: containedRipple 520ms ease-out;
-}
-
-.plant.active .trail {
-  animation: containedTrail 620ms ease-out;
+.plant.active .leaf,
+.plant.active .petal,
+.plant.active .cap,
+.plant.active .stem,
+.plant.active .bell,
+.plant.active .thread,
+.plant.active .reed,
+.plant.active .moss,
+.plant.active .core {
+  background: color-mix(in srgb, var(--accent), #ffffff 34%);
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--accent), white 18%),
+    0 0 42px color-mix(in srgb, var(--accent), transparent 22%);
 }
 
 .primary-button {
@@ -75,25 +84,18 @@ body {
   box-shadow: 0 14px 34px rgba(102, 234, 220, 0.2);
 }
 
-@keyframes containedRipple {
+@keyframes plantFlash {
   0% {
-    opacity: 0.82;
-    transform: translate(-50%, -50%) scale(0.42);
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  36% {
+    opacity: 1;
+    transform: scale(1.2);
   }
   100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(1.58);
-  }
-}
-
-@keyframes containedTrail {
-  0% {
-    opacity: 0.48;
-    transform: translate(-50%, -50%) scale(0.52);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(1.34);
+    opacity: 0.96;
+    transform: scale(1.08);
   }
 }
 
