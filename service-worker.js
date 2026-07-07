@@ -1,8 +1,10 @@
-const CACHE_NAME = "echo-garden-v3";
+const CACHE_NAME = "echo-garden-v5";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./styles.css",
+  "./mobile-polish.css",
+  "./audio-boost.js",
   "./game.js",
   "./manifest.webmanifest",
   "./icons/echo-garden-icon.svg",
