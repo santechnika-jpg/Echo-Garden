@@ -61,18 +61,23 @@ button {
   opacity: 0.9;
 }
 
+.reduced-motion .ambient-canvas {
+  opacity: 0.34;
+}
+
 .garden-stage {
   position: relative;
   z-index: 1;
   min-height: 100svh;
   display: grid;
-  grid-template-rows: auto auto minmax(430px, 1fr) auto auto;
-  gap: 12px;
+  grid-template-rows: auto auto auto minmax(410px, 1fr) auto auto;
+  gap: 11px;
   padding: max(18px, env(safe-area-inset-top)) 18px var(--safe-bottom);
 }
 
 .topbar,
 .stats-row,
+.mode-row,
 .controls {
   width: min(100%, 560px);
   margin: 0 auto;
@@ -147,10 +152,31 @@ h1 {
   line-height: 1;
 }
 
+.mode-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.mode-button {
+  min-height: 36px;
+  border: 1px solid rgba(201, 244, 226, 0.14);
+  border-radius: 8px;
+  padding: 0 8px;
+  background: rgba(5, 24, 26, 0.56);
+  color: var(--muted);
+}
+
+.mode-button.active {
+  border-color: rgba(126, 230, 168, 0.78);
+  background: rgba(126, 230, 168, 0.14);
+  color: var(--text);
+}
+
 .garden {
   position: relative;
   width: min(100%, 560px);
-  min-height: 430px;
+  min-height: 410px;
   margin: 0 auto;
   border-radius: 38% 42% 36% 44% / 34% 40% 44% 38%;
   background:
@@ -221,8 +247,14 @@ h1 {
   cursor: default;
 }
 
-.plant:focus-visible {
+.plant:focus-visible,
+.mode-button:focus-visible,
+.primary-button:focus-visible,
+.secondary-button:focus-visible,
+.quiet-button:focus-visible,
+.pill-button:focus-visible {
   outline: 3px solid rgba(233, 248, 239, 0.88);
+  outline-offset: 3px;
 }
 
 .hit-area {
@@ -480,7 +512,7 @@ h1 {
 
 .controls {
   display: grid;
-  grid-template-columns: 1.15fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 9px;
 }
 
@@ -562,6 +594,29 @@ button:not(:disabled):active {
   filter: grayscale(0.3) brightness(0.74);
 }
 
+.high-contrast {
+  --bg: #001316;
+  --bg-deep: #00090b;
+  --text: #ffffff;
+  --muted: #d7f9ef;
+  --line: rgba(255, 255, 255, 0.44);
+}
+
+.high-contrast .game-shell {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(126, 230, 168, 0.3), transparent 42%),
+    linear-gradient(180deg, #001d20 0%, #001316 54%, #00090b 100%);
+}
+
+.high-contrast .plant-shape {
+  filter: drop-shadow(0 0 20px var(--accent));
+}
+
+.high-contrast .mode-button.active,
+.high-contrast .primary-button {
+  outline: 2px solid #ffffff;
+}
+
 @keyframes breathe {
   0%,
   100% {
@@ -621,8 +676,8 @@ button:not(:disabled):active {
 
 @media (max-width: 430px) {
   .garden-stage {
-    grid-template-rows: auto auto minmax(390px, 1fr) auto auto;
-    gap: 10px;
+    grid-template-rows: auto auto auto minmax(370px, 1fr) auto auto;
+    gap: 9px;
     padding-inline: 14px;
   }
 
@@ -635,21 +690,23 @@ button:not(:disabled):active {
     font-size: 0.8rem;
   }
 
+  .mode-button {
+    min-height: 34px;
+    padding-inline: 4px;
+    font-size: 0.78rem;
+  }
+
   .garden {
-    min-height: 390px;
+    min-height: 370px;
   }
 
   .plant {
-    width: 104px;
-    height: 104px;
+    width: 100px;
+    height: 100px;
   }
 
   .plant-shape {
-    inset: 21px;
-  }
-
-  .controls {
-    grid-template-columns: 1fr 1fr;
+    inset: 20px;
   }
 
   .primary-button,
@@ -657,12 +714,13 @@ button:not(:disabled):active {
   .quiet-button {
     min-height: 50px;
     padding-inline: 10px;
+    font-size: 0.88rem;
   }
 }
 
 @media (min-width: 700px) {
   .garden-stage {
-    grid-template-rows: auto auto minmax(480px, 1fr) auto auto;
+    grid-template-rows: auto auto auto minmax(470px, 1fr) auto auto;
   }
 
   .garden {
@@ -679,4 +737,12 @@ button:not(:disabled):active {
     scroll-behavior: auto !important;
     transition-duration: 1ms !important;
   }
+}
+
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
 }

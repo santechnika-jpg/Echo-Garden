@@ -2,6 +2,9 @@
   "use strict";
 
   const CACHE_BEST_KEY = "echoGardenBestRound";
+  const CACHE_MODE_KEY = "echoGardenMode";
+  const CACHE_MOTION_KEY = "echoGardenReducedMotion";
+  const CACHE_CONTRAST_KEY = "echoGardenHighContrast";
   const initialLength = 3;
   const plants = Array.from(document.querySelectorAll(".plant"));
   const garden = document.getElementById("garden");
@@ -15,12 +18,24 @@
   const pauseButton = document.getElementById("pauseButton");
   const resetButton = document.getElementById("resetButton");
   const soundToggle = document.getElementById("soundToggle");
+  const motionToggle = document.getElementById("motionToggle");
+  const contrastToggle = document.getElementById("contrastToggle");
+  const modeButtons = Array.from(document.querySelectorAll(".mode-button"));
   const canvas = document.getElementById("ambientCanvas");
   const ctx = canvas.getContext("2d");
+  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   const tones = [329.63, 392.0, 493.88, 587.33, 659.25, 739.99];
+  const modeLabels = {
+    classic: "Klasika",
+    zen: "Zen",
+    daily: "Dienos",
+    practice: "Lėtas"
+  };
+
   const state = {
     mode: "intro",
+    playMode: localStorage.getItem(CACHE_MODE_KEY) || "classic",
     sequence: [],
     inputIndex: 0,
     round: 0,
@@ -30,21 +45,30 @@
     audioContext: null,
     masterGain: null,
     pausedBefore: "intro",
-    animationStart: performance.now(),
+    playbackStep: 0,
+    playbackTimer: 0,
+    reducedMotion: readBooleanPreference(CACHE_MOTION_KEY, motionQuery.matches),
+    highContrast: readBooleanPreference(CACHE_CONTRAST_KEY, false),
+    dailyRandom: null,
     particles: [],
     fireflies: [],
-    stars: []
+    stars: [],
+    ambientFrame: 0
   };
 
   function init() {
     bestValue.textContent = String(state.best);
     lengthValue.textContent = String(initialLength);
+    applyPreferenceClasses();
     setPlantsEnabled(false);
     resizeCanvas();
     seedAmbient();
     updateStageClass();
+    updateModeButtons();
+    updateMotionButton();
+    updateContrastButton();
     bindEvents();
-    requestAnimationFrame(drawAmbient);
+    startAmbientLoop();
 
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
@@ -59,7 +83,18 @@
     pauseButton.addEventListener("click", togglePause);
     resetButton.addEventListener("click", resetGame);
     soundToggle.addEventListener("click", toggleSound);
+    motionToggle.addEventListener("click", toggleReducedMotion);
+    contrastToggle.addEventListener("click", toggleHighContrast);
     window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("keydown", handleKeyboardInput);
+
+    if (typeof motionQuery.addEventListener === "function") {
+      motionQuery.addEventListener("change", handleSystemMotionChange);
+    }
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("click", () => setPlayMode(button.dataset.mode));
+    });
 
     plants.forEach((plant) => {
       plant.addEventListener("click", () => {
@@ -144,22 +179,28 @@
 
   function startGame() {
     ensureAudio();
+    clearPlaybackTimer();
+    state.dailyRandom = state.playMode === "daily" ? seededRandom(getDailySeed()) : null;
     state.sequence = randomSequence(initialLength);
     state.inputIndex = 0;
+    state.playbackStep = 0;
     state.round = 1;
     setMode("playback");
     startButton.textContent = "Iš naujo";
     startButton.setAttribute("aria-label", "Pradėti iš naujo");
     pauseButton.disabled = false;
     updateStats();
-    showMessage("Sodas rodo pavyzdį. Stebėk šviesą ir ritmą.");
-    playSequence();
+    showMessage(getStartMessage());
+    playSequence(0);
   }
 
   function resetGame() {
+    clearPlaybackTimer();
     state.sequence = [];
     state.inputIndex = 0;
+    state.playbackStep = 0;
     state.round = 0;
+    state.dailyRandom = null;
     setMode("intro");
     setPlantsEnabled(false);
     replayButton.disabled = true;
@@ -175,10 +216,11 @@
     if (!state.sequence.length || state.mode === "playback" || state.mode === "paused") {
       return;
     }
-    setMode("playback");
+    state.playbackStep = 0;
     state.inputIndex = 0;
+    setMode("playback");
     showMessage("Pakartoju tą pačią sodo melodiją.");
-    playSequence();
+    playSequence(0);
   }
 
   function togglePause() {
@@ -190,8 +232,8 @@
       pauseButton.textContent = "Pauzė";
       if (state.pausedBefore === "playback") {
         setMode("playback");
-        showMessage("Tęsiame nuo sekos rodymo.");
-        playSequence();
+        showMessage("Tęsiame seką nuo sustojimo vietos.");
+        playSequence(state.playbackStep);
         return;
       }
 
@@ -202,6 +244,7 @@
     }
 
     state.pausedBefore = state.mode;
+    clearPlaybackTimer();
     setMode("paused");
     setPlantsEnabled(false);
     pauseButton.textContent = "Tęsti";
@@ -217,6 +260,45 @@
     }
   }
 
+  function toggleReducedMotion() {
+    state.reducedMotion = !state.reducedMotion;
+    localStorage.setItem(CACHE_MOTION_KEY, String(state.reducedMotion));
+    applyPreferenceClasses();
+    updateMotionButton();
+    startAmbientLoop();
+  }
+
+  function toggleHighContrast() {
+    state.highContrast = !state.highContrast;
+    localStorage.setItem(CACHE_CONTRAST_KEY, String(state.highContrast));
+    applyPreferenceClasses();
+    updateContrastButton();
+  }
+
+  function handleSystemMotionChange(event) {
+    if (localStorage.getItem(CACHE_MOTION_KEY) === null) {
+      state.reducedMotion = event.matches;
+      applyPreferenceClasses();
+      updateMotionButton();
+      startAmbientLoop();
+    }
+  }
+
+  function setPlayMode(mode) {
+    if (!modeLabels[mode]) {
+      return;
+    }
+
+    state.playMode = mode;
+    localStorage.setItem(CACHE_MODE_KEY, mode);
+    updateModeButtons();
+    if (state.mode === "intro") {
+      showMessage(`Pasirinktas rešimas: ${modeLabels[mode]}.`);
+    } else {
+      showMessage(`Rešimas pakeistas į ${modeLabels[mode]}. Naujas režimas galios nuo kitos pradžios.`);
+    }
+  }
+
   function handlePlantInput(index) {
     if (state.mode !== "input") {
       return;
@@ -224,6 +306,7 @@
 
     ensureAudio();
     activatePlant(index, false);
+    vibrate(18);
 
     if (index !== state.sequence[state.inputIndex]) {
       handleMistake();
@@ -244,47 +327,58 @@
     state.best = Math.max(state.best, state.round);
     localStorage.setItem(CACHE_BEST_KEY, String(state.best));
     document.body.classList.add("success-glow");
+    vibrate([24, 36, 24]);
     showMessage("Sodas atsakė šviesa. Naujas impulsas prisijungia prie sekos.");
     updateStats();
 
-    setTimeout(() => {
+    window.setTimeout(() => {
       document.body.classList.remove("success-glow");
       state.round += 1;
       state.sequence.push(randomPlantIndex());
       state.inputIndex = 0;
+      state.playbackStep = 0;
       updateStats();
       setMode("playback");
       showMessage("Stebėk naują ilgesnę melodiją.");
-      playSequence();
-    }, 920);
+      playSequence(0);
+    }, state.reducedMotion ? 220 : 920);
   }
 
   function handleMistake() {
     setMode("mistake");
     setPlantsEnabled(false);
     playMistakeTone();
-    document.body.classList.add("mistake-flash");
-    showMessage("Švelnus nukrypimas. Ta pati seka grįžta dar kartą.");
+    vibrate(state.playMode === "zen" ? 20 : [40, 50, 40]);
 
-    setTimeout(() => {
+    if (state.playMode !== "zen") {
+      document.body.classList.add("mistake-flash");
+    }
+
+    showMessage(state.playMode === "zen"
+      ? "Zen rešimas: seka ramiai sugrįžta be pritemdymo."
+      : "Švelnus nukrypimas. Ta pati seka grįžta dar kartą.");
+
+    window.setTimeout(() => {
       document.body.classList.remove("mistake-flash");
       state.inputIndex = 0;
+      state.playbackStep = 0;
       setMode("playback");
-      playSequence();
-    }, 980);
+      playSequence(0);
+    }, state.reducedMotion ? 260 : 980);
   }
 
-  function playSequence() {
+  function playSequence(startStep) {
+    clearPlaybackTimer();
     setPlantsEnabled(false);
     replayButton.disabled = true;
-    let step = 0;
+    state.playbackStep = startStep;
 
     const next = () => {
       if (state.mode !== "playback") {
         return;
       }
 
-      if (step >= state.sequence.length) {
+      if (state.playbackStep >= state.sequence.length) {
         state.inputIndex = 0;
         setMode("input");
         setPlantsEnabled(true);
@@ -293,12 +387,12 @@
         return;
       }
 
-      activatePlant(state.sequence[step], true);
-      step += 1;
-      setTimeout(next, 620);
+      activatePlant(state.sequence[state.playbackStep], true);
+      state.playbackStep += 1;
+      state.playbackTimer = window.setTimeout(next, getPlaybackDelay());
     };
 
-    setTimeout(next, 420);
+    state.playbackTimer = window.setTimeout(next, getLeadInDelay());
   }
 
   function activatePlant(index, soft) {
@@ -311,11 +405,14 @@
     void plant.offsetWidth;
     plant.classList.add("active");
     playTone(index, soft);
-    addLightTrail(plant);
 
-    setTimeout(() => {
+    if (!state.reducedMotion) {
+      addLightTrail(plant);
+    }
+
+    window.setTimeout(() => {
       plant.classList.remove("active");
-    }, 460);
+    }, state.reducedMotion ? 120 : 460);
   }
 
   function addLightTrail(plant) {
@@ -330,6 +427,13 @@
       radius: 8 + Math.random() * 5,
       color: getComputedStyle(plant).getPropertyValue("--accent").trim()
     });
+  }
+
+  function handleKeyboardInput(event) {
+    const digit = Number(event.key);
+    if (digit >= 1 && digit <= plants.length) {
+      handlePlantInput(digit - 1);
+    }
   }
 
   function setMode(mode) {
@@ -369,6 +473,31 @@
     soundToggle.setAttribute("aria-pressed", String(state.soundEnabled));
   }
 
+  function updateMotionButton() {
+    motionToggle.textContent = state.reducedMotion ? "Judesis mažas" : "Mažiau judesio";
+    motionToggle.setAttribute("aria-label", state.reducedMotion ? "Grąžinti įprastą judesį" : "Sumažinti judesį");
+    motionToggle.setAttribute("aria-pressed", String(state.reducedMotion));
+  }
+
+  function updateContrastButton() {
+    contrastToggle.textContent = state.highContrast ? "Kontrastas ryškus" : "Ryškus kontrastas";
+    contrastToggle.setAttribute("aria-label", state.highContrast ? "Išjungti ryškų kontrastą" : "Įjungti ryškų kontrastą");
+    contrastToggle.setAttribute("aria-pressed", String(state.highContrast));
+  }
+
+  function updateModeButtons() {
+    modeButtons.forEach((button) => {
+      const active = button.dataset.mode === state.playMode;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+  }
+
+  function applyPreferenceClasses() {
+    document.body.classList.toggle("reduced-motion", state.reducedMotion);
+    document.body.classList.toggle("high-contrast", state.highContrast);
+  }
+
   function showMessage(text) {
     messagePanel.textContent = text;
   }
@@ -384,7 +513,78 @@
   }
 
   function randomPlantIndex() {
+    if (state.dailyRandom) {
+      return Math.floor(state.dailyRandom() * plants.length);
+    }
     return Math.floor(Math.random() * plants.length);
+  }
+
+  function seededRandom(seed) {
+    let value = seed >>> 0;
+    return () => {
+      value = (value * 1664525 + 1013904223) >>> 0;
+      return value / 4294967296;
+    };
+  }
+
+  function getDailySeed() {
+    const today = new Date();
+    const stamp = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+    let seed = 2166136261;
+    for (let index = 0; index < stamp.length; index += 1) {
+      seed ^= stamp.charCodeAt(index);
+      seed = Math.imul(seed, 16777619);
+    }
+    return seed;
+  }
+
+  function getPlaybackDelay() {
+    if (state.reducedMotion) {
+      return 360;
+    }
+    return state.playMode === "practice" ? 860 : 620;
+  }
+
+  function getLeadInDelay() {
+    if (state.reducedMotion) {
+      return 180;
+    }
+    return state.playMode === "practice" ? 620 : 420;
+  }
+
+  function getStartMessage() {
+    if (state.playMode === "daily") {
+      return "Dienos rešimas: šiandienos sodo seka visada prasideda taip pat.";
+    }
+    if (state.playMode === "practice") {
+      return "Lėtas rešimas: sodas rodo seką lėtesniu ritmu.";
+    }
+    if (state.playMode === "zen") {
+      return "Zen režimas: klaidos praeina švelniau, o sodas ramiai pakartoja seką.";
+    }
+    return "Sodas rodo pavyzdį. Stebėk šviesą ir ritmą.";
+  }
+
+  function clearPlaybackTimer() {
+    if (state.playbackTimer) {
+      window.clearTimeout(state.playbackTimer);
+      state.playbackTimer = 0;
+    }
+  }
+
+  function readBooleanPreference(key, fallback) {
+    const stored = localStorage.getItem(key);
+    if (stored === null) {
+      return fallback;
+    }
+    return stored === "true";
+  }
+
+  function vibrate(pattern) {
+    if (state.reducedMotion || !("vibrate" in navigator)) {
+      return;
+    }
+    navigator.vibrate(pattern);
   }
 
   function resizeCanvas() {
@@ -395,14 +595,17 @@
     canvas.style.height = `${window.innerHeight}px`;
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     seedAmbient();
+    if (state.reducedMotion) {
+      drawAmbient(performance.now());
+    }
   }
 
   function seedAmbient() {
     const width = window.innerWidth || 360;
     const height = window.innerHeight || 720;
     const level = Math.max(state.best, state.round);
-    const starCount = level >= 5 ? 58 : 34;
-    const flyCount = level >= 10 ? 9 : 4;
+    const starCount = state.reducedMotion ? 18 : (level >= 5 ? 58 : 34);
+    const flyCount = state.reducedMotion ? 0 : (level >= 10 ? 9 : 4);
 
     state.stars = Array.from({ length: starCount }, () => ({
       x: Math.random() * width,
@@ -420,6 +623,24 @@
     }));
   }
 
+  function startAmbientLoop() {
+    if (state.ambientFrame) {
+      cancelAnimationFrame(state.ambientFrame);
+      state.ambientFrame = 0;
+    }
+
+    seedAmbient();
+    drawAmbient(performance.now());
+    if (!state.reducedMotion) {
+      state.ambientFrame = requestAnimationFrame(ambientTick);
+    }
+  }
+
+  function ambientTick(now) {
+    drawAmbient(now);
+    state.ambientFrame = requestAnimationFrame(ambientTick);
+  }
+
   function drawAmbient(now) {
     const width = window.innerWidth || 360;
     const height = window.innerHeight || 720;
@@ -427,15 +648,16 @@
 
     drawStars(now);
     drawMist(now, width, height);
-    drawFireflies(now, width, height);
-    drawParticles(now);
-
-    requestAnimationFrame(drawAmbient);
+    if (!state.reducedMotion) {
+      drawFireflies(now, width, height);
+      drawParticles(now);
+    }
   }
 
   function drawStars(now) {
     state.stars.forEach((star) => {
-      const alpha = 0.18 + Math.sin(now / 1200 + star.pulse) * 0.12;
+      const pulse = state.reducedMotion ? 0 : Math.sin(now / 1200 + star.pulse) * 0.12;
+      const alpha = 0.18 + pulse;
       ctx.fillStyle = `rgba(214, 247, 226, ${Math.max(0.08, alpha)})`;
       ctx.beginPath();
       ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
@@ -445,7 +667,7 @@
 
   function drawMist(now, width, height) {
     const level = Math.max(state.best, state.round);
-    if (level < 10) {
+    if (level < 10 || state.reducedMotion) {
       return;
     }
 
