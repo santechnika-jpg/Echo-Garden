@@ -1,4 +1,4 @@
-const CACHE_NAME = "echo-garden-v5";
+const CACHE_NAME = "echo-garden-v6";
 const APP_SHELL = [
   "./",
   "./index.html",

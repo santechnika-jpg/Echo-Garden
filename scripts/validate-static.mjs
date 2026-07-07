@@ -58,8 +58,8 @@ if (!html.includes("mobile-polish.css") || !html.includes("audio-boost.js")) {
   throw new Error("index.html must load mobile-polish.css and audio-boost.js");
 }
 
-if (!serviceWorker.includes("echo-garden-v5")) {
-  throw new Error("service-worker.js cache version must be echo-garden-v5");
+if (!serviceWorker.includes("echo-garden-v6")) {
+  throw new Error("service-worker.js cache version must be echo-garden-v6");
 }
 
 console.log("Static validation passed.");
