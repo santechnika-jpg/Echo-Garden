@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 const requiredFiles = [
   "index.html",
   "styles.css",
+  "mobile-polish.css",
+  "audio-boost.js",
   "game.js",
   "manifest.webmanifest",
   "service-worker.js",
@@ -27,7 +29,7 @@ for (const icon of manifest.icons) {
 }
 
 const serviceWorker = readFileSync("service-worker.js", "utf8");
-for (const file of ["./index.html", "./styles.css", "./game.js", "./manifest.webmanifest"]) {
+for (const file of ["./index.html", "./styles.css", "./mobile-polish.css", "./audio-boost.js", "./game.js", "./manifest.webmanifest"]) {
   if (!serviceWorker.includes(file)) {
     throw new Error(`service-worker.js cache list is missing ${file}`);
   }
@@ -38,6 +40,26 @@ for (const id of ["motionToggle", "contrastToggle", "modeClassic", "modeZen", "m
   if (!html.includes(`id="${id}"`)) {
     throw new Error(`index.html is missing #${id}`);
   }
+}
+
+for (const script of ["game.js", "audio-boost.js"]) {
+  const source = readFileSync(script, "utf8");
+  if (source.includes("\uFFFD") || /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/u.test(source)) {
+    throw new Error(`${script} appears to contain invalid text or control characters`);
+  }
+}
+
+const game = readFileSync("game.js", "utf8");
+if (game.includes("masterGaion")) {
+  throw new Error("game.js contains unexpected text: masterGaion");
+}
+
+if (!html.includes("mobile-polish.css") || !html.includes("audio-boost.js")) {
+  throw new Error("index.html must load mobile-polish.css and audio-boost.js");
+}
+
+if (!serviceWorker.includes("echo-garden-v5")) {
+  throw new Error("service-worker.js cache version must be echo-garden-v5");
 }
 
 console.log("Static validation passed.");
