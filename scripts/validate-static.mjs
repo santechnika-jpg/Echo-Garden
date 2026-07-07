@@ -4,6 +4,7 @@ const requiredFiles = [
   "index.html",
   "styles.css",
   "mobile-polish.css",
+  "no-rings-v8.css",
   "audio-boost.js",
   "game.js",
   "manifest.webmanifest",
@@ -29,7 +30,7 @@ for (const icon of manifest.icons) {
 }
 
 const serviceWorker = readFileSync("service-worker.js", "utf8");
-for (const file of ["./index.html", "./styles.css", "./mobile-polish.css", "./audio-boost.js", "./game.js", "./manifest.webmanifest"]) {
+for (const file of ["./index.html", "./styles.css?v=8", "./mobile-polish.css?v=8", "./no-rings-v8.css", "./audio-boost.js", "./game.js", "./manifest.webmanifest"]) {
   if (!serviceWorker.includes(file)) {
     throw new Error(`service-worker.js cache list is missing ${file}`);
   }
@@ -54,12 +55,23 @@ if (game.includes("masterGaion")) {
   throw new Error("game.js contains unexpected text: masterGaion");
 }
 
-if (!html.includes("mobile-polish.css") || !html.includes("audio-boost.js")) {
-  throw new Error("index.html must load mobile-polish.css and audio-boost.js");
+if (!html.includes("styles.css?v=8") || !html.includes("mobile-polish.css?v=8") || !html.includes("no-rings-v8.css") || !html.includes("audio-boost.js")) {
+  throw new Error("index.html must load the versioned CSS, no-rings-v8.css, and audio-boost.js");
 }
 
-if (!serviceWorker.includes("echo-garden-v7")) {
-  throw new Error("service-worker.js cache version must be echo-garden-v7");
+if (!serviceWorker.includes("echo-garden-v8")) {
+  throw new Error("service-worker.js cache version must be echo-garden-v8");
+}
+
+const noRings = readFileSync("no-rings-v8.css", "utf8");
+for (const required of [".ripple", ".trail", "display: none !important", "plantArtworkFlash", ".plant.active .plant-shape"]) {
+  if (!noRings.includes(required)) {
+    throw new Error(`no-rings-v8.css is missing required hard override: ${required}`);
+  }
+}
+
+if (html.indexOf("no-rings-v8.css") < html.indexOf("mobile-polish.css?v=8")) {
+  throw new Error("no-rings-v8.css must load after mobile-polish.css");
 }
 
 console.log("Static validation passed.");
