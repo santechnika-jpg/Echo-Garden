@@ -42,6 +42,13 @@
           </div>
         </div>
 
+        <div class="mode-row" aria-label="Žaidimo režimas">
+          <button id="modeClassic" class="mode-button active" type="button" data-mode="classic" aria-pressed="true">Klasika</button>
+          <button id="modeZen" class="mode-button" type="button" data-mode="zen" aria-pressed="false">Zen</button>
+          <button id="modeDaily" class="mode-button" type="button" data-mode="daily" aria-pressed="false">Dienos</button>
+          <button id="modePractice" class="mode-button" type="button" data-mode="practice" aria-pressed="false">Lėtas</button>
+        </div>
+
         <div id="garden" class="garden" aria-label="Interaktyvūs švytintys augalai">
           <button class="plant plant-fern" data-plant="0" type="button" aria-label="Žalsvas paparčio impulsas">
             <span class="hit-area"></span>
@@ -122,7 +129,9 @@
           <button id="startButton" class="primary-button" type="button" aria-label="Pradėti žaidimą">Pradėti</button>
           <button id="replayButton" class="secondary-button" type="button" aria-label="Pakartoti seką" disabled>Pakartoti seką</button>
           <button id="pauseButton" class="secondary-button" type="button" aria-label="Pauzė" disabled>Pauzė</button>
-          <button id="resetButton" class="quiet-button" type="button" aria-label="Iš naujo">Reset</button>
+          <button id="resetButton" class="quiet-button" type="button" aria-label="Atstatyti">Atstatyti</button>
+          <button id="motionToggle" class="quiet-button" type="button" aria-label="Sumažinti judesį" aria-pressed="false">Mažiau judesio</button>
+          <button id="contrastToggle" class="quiet-button" type="button" aria-label="Įjungti ryškų kontrastą" aria-pressed="false">Ryškus kontrastas</button>
         </div>
       </section>
     </main>
