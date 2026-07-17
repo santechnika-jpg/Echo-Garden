@@ -5,6 +5,7 @@ const requiredFiles = [
   "styles.css",
   "mobile-polish.css",
   "no-rings-v8.css",
+  "sequence-clarity-v10.js",
   "audio-boost.js",
   "game.js",
   "manifest.webmanifest",
@@ -30,7 +31,7 @@ for (const icon of manifest.icons) {
 }
 
 const serviceWorker = readFileSync("service-worker.js", "utf8");
-for (const file of ["./index.html", "./styles.css?v=9", "./mobile-polish.css?v=9", "./no-rings-v8.css?v=9", "./audio-boost.js?v=9", "./game.js?v=9", "./manifest.webmanifest"]) {
+for (const file of ["./index.html", "./styles.css?v=10", "./mobile-polish.css?v=10", "./no-rings-v8.css?v=10", "./audio-boost.js?v=10", "./sequence-clarity-v10.js", "./game.js?v=10", "./manifest.webmanifest"]) {
   if (!serviceWorker.includes(file)) {
     throw new Error(`service-worker.js cache list is missing ${file}`);
   }
@@ -43,7 +44,7 @@ for (const id of ["motionToggle", "contrastToggle", "modeClassic", "modeZen", "m
   }
 }
 
-for (const script of ["game.js", "audio-boost.js"]) {
+for (const script of ["game.js", "audio-boost.js", "sequence-clarity-v10.js"]) {
   const source = readFileSync(script, "utf8");
   if (source.includes("\uFFFD") || /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/u.test(source)) {
     throw new Error(`${script} appears to contain invalid text or control characters`);
@@ -55,12 +56,12 @@ if (game.includes("masterGaion")) {
   throw new Error("game.js contains unexpected text: masterGaion");
 }
 
-if (!html.includes("styles.css?v=9") || !html.includes("mobile-polish.css?v=9") || !html.includes("no-rings-v8.css?v=9") || !html.includes("audio-boost.js?v=9") || !html.includes("game.js?v=9")) {
-  throw new Error("index.html must load the v9 app shell assets");
+if (!html.includes("styles.css?v=10") || !html.includes("mobile-polish.css?v=10") || !html.includes("no-rings-v8.css?v=10") || !html.includes("audio-boost.js?v=10") || !html.includes("sequence-clarity-v10.js") || !html.includes("game.js?v=10")) {
+  throw new Error("index.html must load the v10 app shell assets");
 }
 
-if (!serviceWorker.includes("echo-garden-v9")) {
-  throw new Error("service-worker.js cache version must be echo-garden-v9");
+if (!serviceWorker.includes("echo-garden-v10")) {
+  throw new Error("service-worker.js cache version must be echo-garden-v10");
 }
 
 const noRings = readFileSync("no-rings-v8.css", "utf8");
@@ -70,12 +71,27 @@ for (const required of [".version-badge", ".ripple", ".trail", "display: none !i
   }
 }
 
-if (!html.includes(">v9<")) {
+const clarity = readFileSync("sequence-clarity-v10.js", "utf8");
+for (const required of ["ECHO_GARDEN_VERSION", "v10", "timingMap", ".ripple, .trail", "ambientCanvas"]) {
+  if (!clarity.includes(required)) {
+    throw new Error(`sequence-clarity-v10.js is missing required clarity behavior: ${required}`);
+  }
+}
+
+if (!html.includes(">v10<")) {
   throw new Error("index.html must display the current version badge");
 }
 
-if (html.indexOf("no-rings-v8.css?v=9") < html.indexOf("mobile-polish.css?v=9")) {
+if (html.includes('class="ripple"') || html.includes('class="trail"')) {
+  throw new Error("index.html must not include detached light-ring elements");
+}
+
+if (html.indexOf("no-rings-v8.css?v=10") < html.indexOf("mobile-polish.css?v=10")) {
   throw new Error("no-rings-v8.css must load after mobile-polish.css");
+}
+
+if (html.indexOf("sequence-clarity-v10.js") > html.indexOf("game.js?v=10")) {
+  throw new Error("sequence-clarity-v10.js must load before game.js");
 }
 
 console.log("Static validation passed.");
