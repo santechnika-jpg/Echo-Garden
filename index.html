@@ -7,9 +7,9 @@
     <meta name="description" content="Echo Garden - ramus mobilus atminties žaidimas apie garsų ir šviesos sekas naktiniame sode.">
     <title>Echo Garden</title>
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="stylesheet" href="styles.css?v=9">
-    <link rel="stylesheet" href="mobile-polish.css?v=9">
-    <link rel="stylesheet" href="no-rings-v8.css?v=9">
+    <link rel="stylesheet" href="styles.css?v=10">
+    <link rel="stylesheet" href="mobile-polish.css?v=10">
+    <link rel="stylesheet" href="no-rings-v8.css?v=10">
   </head>
   <body>
     <main class="game-shell" aria-label="Echo Garden žaidimas">
@@ -22,7 +22,7 @@
             <div>
               <h1>Echo Garden</h1>
               <p id="stateText">Paliesk „Pradėti“ ir įsimink sodo aidą.</p>
-              <span class="version-badge" aria-label="Žaidimo versija">v9</span>
+              <span class="version-badge" aria-label="Žaidimo versija">v10</span>
             </div>
           </div>
           <button id="soundToggle" class="pill-button sound-button" type="button" aria-label="Išjungti garsą" aria-pressed="true">
@@ -55,8 +55,6 @@
         <div id="garden" class="garden" aria-label="Interaktyvūs švytintys augalai">
           <button class="plant plant-fern" data-plant="0" type="button" aria-label="Žalsvas paparčio impulsas">
             <span class="hit-area"></span>
-            <span class="ripple"></span>
-            <span class="trail"></span>
             <span class="plant-shape">
               <span class="leaf leaf-a"></span>
               <span class="leaf leaf-b"></span>
@@ -67,8 +65,6 @@
 
           <button class="plant plant-orchid" data-plant="1" type="button" aria-label="Koralinis orchidėjos impulsas">
             <span class="hit-area"></span>
-            <span class="ripple"></span>
-            <span class="trail"></span>
             <span class="plant-shape">
               <span class="petal petal-a"></span>
               <span class="petal petal-b"></span>
@@ -79,8 +75,6 @@
 
           <button class="plant plant-mooncap" data-plant="2" type="button" aria-label="Melsvas mėnulio grybo impulsas">
             <span class="hit-area"></span>
-            <span class="ripple"></span>
-            <span class="trail"></span>
             <span class="plant-shape">
               <span class="cap"></span>
               <span class="stem"></span>
@@ -90,8 +84,6 @@
 
           <button class="plant plant-lantern" data-plant="3" type="button" aria-label="Auksinis žibinto žiedo impulsas">
             <span class="hit-area"></span>
-            <span class="ripple"></span>
-            <span class="trail"></span>
             <span class="plant-shape">
               <span class="bell"></span>
               <span class="thread"></span>
@@ -101,8 +93,6 @@
 
           <button class="plant plant-reed" data-plant="4" type="button" aria-label="Turkio nendrės impulsas">
             <span class="hit-area"></span>
-            <span class="ripple"></span>
-            <span class="trail"></span>
             <span class="plant-shape">
               <span class="reed reed-a"></span>
               <span class="reed reed-b"></span>
@@ -113,8 +103,6 @@
 
           <button class="plant plant-ember" data-plant="5" type="button" aria-label="Šiltas gintarinis samanų impulsas">
             <span class="hit-area"></span>
-            <span class="ripple"></span>
-            <span class="trail"></span>
             <span class="plant-shape">
               <span class="moss moss-a"></span>
               <span class="moss moss-b"></span>
@@ -139,7 +127,8 @@
       </section>
     </main>
 
-    <script src="audio-boost.js?v=9" defer></script>
-    <script src="game.js?v=9" defer></script>
+    <script src="audio-boost.js?v=10" defer></script>
+    <script src="sequence-clarity-v10.js" defer></script>
+    <script src="game.js?v=10" defer></script>
   </body>
 </html>
