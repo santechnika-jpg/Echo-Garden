@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 
 const requiredFiles = [
   "index.html",
+  "404.html",
   "reset.html",
   "styles.css",
   "mobile-polish.css",
@@ -39,6 +40,7 @@ for (const file of ["./index.html", "./styles.css?v=10", "./mobile-polish.css?v=
 }
 
 const html = readFileSync("index.html", "utf8");
+const notFoundHtml = readFileSync("404.html", "utf8");
 const resetHtml = readFileSync("reset.html", "utf8");
 for (const id of ["motionToggle", "contrastToggle", "modeClassic", "modeZen", "modeDaily", "modePractice"]) {
   if (!html.includes(`id="${id}"`)) {
@@ -99,6 +101,9 @@ if (html.indexOf("sequence-clarity-v10.js") > html.indexOf("game.js?v=10")) {
 for (const required of ["getRegistrations", "caches.keys", "./?v=10&reset=1"]) {
   if (!resetHtml.includes(required)) {
     throw new Error(`reset.html is missing reset behavior: ${required}`);
+  }
+  if (!notFoundHtml.includes(required)) {
+    throw new Error(`404.html is missing reset behavior: ${required}`);
   }
 }
 
