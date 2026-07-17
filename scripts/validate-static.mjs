@@ -30,7 +30,7 @@ for (const icon of manifest.icons) {
 }
 
 const serviceWorker = readFileSync("service-worker.js", "utf8");
-for (const file of ["./index.html", "./styles.css?v=8", "./mobile-polish.css?v=8", "./no-rings-v8.css", "./audio-boost.js", "./game.js", "./manifest.webmanifest"]) {
+for (const file of ["./index.html", "./styles.css?v=9", "./mobile-polish.css?v=9", "./no-rings-v8.css?v=9", "./audio-boost.js?v=9", "./game.js?v=9", "./manifest.webmanifest"]) {
   if (!serviceWorker.includes(file)) {
     throw new Error(`service-worker.js cache list is missing ${file}`);
   }
@@ -55,22 +55,26 @@ if (game.includes("masterGaion")) {
   throw new Error("game.js contains unexpected text: masterGaion");
 }
 
-if (!html.includes("styles.css?v=8") || !html.includes("mobile-polish.css?v=8") || !html.includes("no-rings-v8.css") || !html.includes("audio-boost.js")) {
-  throw new Error("index.html must load the versioned CSS, no-rings-v8.css, and audio-boost.js");
+if (!html.includes("styles.css?v=9") || !html.includes("mobile-polish.css?v=9") || !html.includes("no-rings-v8.css?v=9") || !html.includes("audio-boost.js?v=9") || !html.includes("game.js?v=9")) {
+  throw new Error("index.html must load the v9 app shell assets");
 }
 
-if (!serviceWorker.includes("echo-garden-v8")) {
-  throw new Error("service-worker.js cache version must be echo-garden-v8");
+if (!serviceWorker.includes("echo-garden-v9")) {
+  throw new Error("service-worker.js cache version must be echo-garden-v9");
 }
 
 const noRings = readFileSync("no-rings-v8.css", "utf8");
-for (const required of [".ripple", ".trail", "display: none !important", "plantArtworkFlash", ".plant.active .plant-shape"]) {
+for (const required of [".version-badge", ".ripple", ".trail", "display: none !important", "plantArtworkFlash", ".plant.active .plant-shape"]) {
   if (!noRings.includes(required)) {
     throw new Error(`no-rings-v8.css is missing required hard override: ${required}`);
   }
 }
 
-if (html.indexOf("no-rings-v8.css") < html.indexOf("mobile-polish.css?v=8")) {
+if (!html.includes(">v9<")) {
+  throw new Error("index.html must display the current version badge");
+}
+
+if (html.indexOf("no-rings-v8.css?v=9") < html.indexOf("mobile-polish.css?v=9")) {
   throw new Error("no-rings-v8.css must load after mobile-polish.css");
 }
 
