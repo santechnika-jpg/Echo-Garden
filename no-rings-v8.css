@@ -1,3 +1,18 @@
+.version-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border: 1px solid rgba(201, 244, 226, 0.24);
+  border-radius: 999px;
+  background: rgba(5, 24, 26, 0.72);
+  color: #dffbee;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .ripple,
 .trail,
 .is-input .plant:not(:disabled)::before {
